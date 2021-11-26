@@ -5,6 +5,10 @@
                                                     Forrest Yu, 2005
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
+
+//这里存的是每个.c文件中需要使用到的函数的头文件
+
+
 /* klib.asm */
 PUBLIC void	out_byte(u16 port, u8 value);
 PUBLIC u8	in_byte(u16 port);
@@ -25,6 +29,7 @@ void restart();
 void TestA();
 void TestB();
 void TestC();
+void cleanScreen();
 
 /* i8259.c */
 PUBLIC void put_irq_handler(int irq, irq_handler handler);

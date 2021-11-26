@@ -71,10 +71,9 @@ PUBLIC int kernel_main()
 	ticks = 0;
 
 	p_proc_ready	= proc_table;
-
+    cleanScreen();
 	init_clock();
-        init_keyboard();
-
+    init_keyboard();
 	restart();
 
 	while(1){}
@@ -114,4 +113,14 @@ void TestC()
 		/* disp_str("C."); */
 		milli_delay(10);
 	}
+}
+
+
+void cleanScreen(){
+    disp_pos = 0;
+    int i;
+    for (i = 0 ; i < SCREEN_SIZE; ++i){
+        disp_str(" ");
+    }
+    disp_pos = 0;
 }
