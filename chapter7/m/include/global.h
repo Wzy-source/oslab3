@@ -11,6 +11,16 @@
 #define	EXTERN
 #endif
 
+//TODO 5 为什么需要extern？？？？
+/*mode表示当前tty的模式
+ * mode==0：正常输入模式，会定时刷新
+ * mode==1：查找中模式，不会定时刷新
+ * */
+EXTERN int mode;
+
+//TODO 7 在mode==1时候，输入完毕关键字，对是否按下enter的判断,等于1，则为展示（相当于按下了enter），不等于，则说明还没按下enter
+EXTERN int show_search_res;
+
 EXTERN	int		ticks;
 
 EXTERN	int		disp_pos;

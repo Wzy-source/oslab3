@@ -4,12 +4,16 @@
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 						    Forrest Yu, 2005
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+//TTY指的是终端
 
+#define TTY_FIRST    (tty_table)
+#define TTY_END        (tty_table + NR_CONSOLES)
 #ifndef _ORANGES_TTY_H_
 #define _ORANGES_TTY_H_
 
 
 #define TTY_IN_BYTES	256	/* tty input queue size */
+
 
 struct s_console;
 
@@ -26,3 +30,4 @@ typedef struct s_tty
 
 
 #endif /* _ORANGES_TTY_H_ */
+

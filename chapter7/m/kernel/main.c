@@ -29,7 +29,7 @@ PUBLIC int kernel_main()
 	u16		selector_ldt	= SELECTOR_LDT_FIRST;
 	int i;
 	for (i = 0; i < NR_TASKS; i++) {
-		strcpy(p_proc->p_name, p_task->name);	// name of the process
+		strcpy(p_proc->p_name, p_task->name);	// name of the process，运行这三个进程
 		p_proc->pid = i;			// pid
 
 		p_proc->ldt_sel = selector_ldt;
@@ -82,14 +82,28 @@ PUBLIC int kernel_main()
 /*======================================================================*
                                TestA
  *======================================================================*/
-void TestA()
+void TestA()//这是第6章的"进程"，本代码中有三个进程同时进行
 {
-	int i = 0;
-	while (1) {
-		/* disp_str("A."); */
-		milli_delay(10);
+
+//TODO 3 定时清屏
+//TODO 5 按下ESC键，改变模式,不再清屏
+//TODO 6 修改代码
+        while (1) {
+            if (mode == 0) {
+                TTY *p_tty;
+                for (p_tty = TTY_FIRST; p_tty < TTY_END; p_tty++) {
+                    init_screen(p_tty);
+                }
+                select_console(0);
+                cleanScreen();
+                milli_delay(300000); //经过尝试发现设置为 300000 差不多是20秒左右
+            } else {//按下ESC键，不再进行二十秒清屏操作，mode==1或mode==2
+                milli_delay(10);
+            }
+
+        }
 	}
-}
+
 
 /*======================================================================*
                                TestB
@@ -98,6 +112,7 @@ void TestB()
 {
 	int i = 0x1000;
 	while(1){
+
 		/* disp_str("B."); */
 		milli_delay(10);
 	}

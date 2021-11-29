@@ -43,7 +43,7 @@ PUBLIC void init_clock();
 PUBLIC void init_keyboard();
 
 /* tty.c */
-PUBLIC void task_tty();
+PUBLIC _Noreturn void task_tty();
 PUBLIC void in_process(TTY* p_tty, u32 key);
 
 /* console.c */

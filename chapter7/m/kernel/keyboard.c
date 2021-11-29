@@ -25,7 +25,7 @@ PRIVATE	int	alt_l;		/* l alt state	 */
 PRIVATE	int	alt_r;		/* r left state	 */
 PRIVATE	int	ctrl_l;		/* l ctrl state	 */
 PRIVATE	int	ctrl_r;		/* l ctrl state	 */
-PRIVATE	int	caps_lock;	/* Caps Lock	 */
+PRIVATE	int	caps_lock;	/* Caps Lock	 */   //大写锁定
 PRIVATE	int	num_lock;	/* Num Lock	 */
 PRIVATE	int	scroll_lock;	/* Scroll Lock	 */
 PRIVATE	int	column;
@@ -34,7 +34,7 @@ PRIVATE int	caps_lock;	/* Caps Lock	 */
 PRIVATE int	num_lock;	/* Num Lock	 */
 PRIVATE int	scroll_lock;	/* Scroll Lock	 */
 
-PRIVATE u8	get_byte_from_kbuf();
+PRIVATE u8	get_byte_from_kbuf();//从键盘上获取一个字符
 PRIVATE void    set_leds();
 PRIVATE void    kb_wait();
 PRIVATE void    kb_ack();
@@ -146,17 +146,20 @@ PUBLIC void keyboard_read(TTY* p_tty)
 			make = (scan_code & FLAG_BREAK ? 0 : 1);
 
 			/* 先定位到 keymap 中的行 */
-			keyrow = &keymap[(scan_code & 0x7F) * MAP_COLS];
+			keyrow = &keymap[(scan_code & 0x7F) * MAP_COLS];//在这里去查阅KeyMap的结构！
+            /*
+             * 定位到行以后，keyrow[0]代表小写字符，keyrow[1]代表大写字符
+             * */
 
 			column = 0;
 
 			int caps = shift_l || shift_r;
-			if (caps_lock) {
+			if (caps_lock) {//如果大写锁定被按下
 				if ((keyrow[0] >= 'a') && (keyrow[0] <= 'z')){
 					caps = !caps;
 				}
 			}
-			if (caps) {
+			if (caps) {//大写
 				column = 1;
 			}
 
@@ -165,8 +168,12 @@ PUBLIC void keyboard_read(TTY* p_tty)
 			}
 
 			key = keyrow[column];
+            /*
+             * 如果上面代码正确的话，到此就确定了我们希望输入的字符是什么了，保存为key
+             * make：make=1，则是makeCode，make=0，则是breakCode
+             * */
 
-			switch(key) {
+			switch(key) {//
 			case SHIFT_L:
 				shift_l = make;
 				break;
