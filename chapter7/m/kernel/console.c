@@ -8,7 +8,6 @@
 /*
 	回车键: 把光标移到第一列
 	换行键: 把光标前进到下一行
-
 */
 
 
@@ -24,23 +23,22 @@
 #include "proto.h"
 
 PRIVATE void set_cursor(unsigned int position);
-
 PRIVATE void set_video_start_addr(u32 addr);
-
-PRIVATE void flush(CONSOLE *p_con);
+PRIVATE void flush(CONSOLE* p_con);
 
 /*======================================================================*
 			   init_screen
  *======================================================================*/
-PUBLIC void init_screen(TTY *p_tty) {
+PUBLIC void init_screen(TTY* p_tty)
+{
     int nr_tty = p_tty - tty_table;
     p_tty->p_console = console_table + nr_tty;
 
-    int v_mem_size = V_MEM_SIZE >> 1;    /* 显存总大小 (in WORD) */
+    int v_mem_size = V_MEM_SIZE >> 1;	/* 显存总大小 (in WORD) */
 
-    int con_v_mem_size = v_mem_size / NR_CONSOLES;
-    p_tty->p_console->original_addr = nr_tty * con_v_mem_size;
-    p_tty->p_console->v_mem_limit = con_v_mem_size;
+    int con_v_mem_size                   = v_mem_size / NR_CONSOLES;
+    p_tty->p_console->original_addr      = nr_tty * con_v_mem_size;
+    p_tty->p_console->v_mem_limit        = con_v_mem_size;
     p_tty->p_console->current_start_addr = p_tty->p_console->original_addr;
 
     /* 默认光标位置在最开始处 */
@@ -50,7 +48,8 @@ PUBLIC void init_screen(TTY *p_tty) {
         /* 第一个控制台沿用原来的光标位置 */
         p_tty->p_console->cursor = disp_pos / 2;
         disp_pos = 0;
-    } else {
+    }
+    else {
         out_char(p_tty->p_console, nr_tty + '0');
         out_char(p_tty->p_console, '#');
     }
@@ -62,7 +61,8 @@ PUBLIC void init_screen(TTY *p_tty) {
 /*======================================================================*
 			   is_current_console
 *======================================================================*/
-PUBLIC int is_current_console(CONSOLE *p_con) {
+PUBLIC int is_current_console(CONSOLE* p_con)
+{
     return (p_con == &console_table[nr_current_console]);
 }
 
@@ -70,52 +70,47 @@ PUBLIC int is_current_console(CONSOLE *p_con) {
 /*======================================================================*
 			   out_char
  *======================================================================*/
-PUBLIC void out_char(CONSOLE *p_con, char ch)//向显示器上写一个字符，cursor指的是光标
+PUBLIC void out_char(CONSOLE* p_con, char ch)
 {
-    u8 *p_vmem = (u8 *) (V_MEM_BASE + p_con->cursor * 2);
-    //一个字符占用两个字节，用于定位到当前字符在显存中的位置
-    //低字节表示的是字符本身，高字节用来定义字符的颜色
+    u8* p_vmem = (u8*)(V_MEM_BASE + p_con->cursor * 2);
 
-    switch (ch) {
-        case '\n'://换行键
+    switch(ch) {
+        case '\n':
             if (p_con->cursor < p_con->original_addr +
                                 p_con->v_mem_limit - SCREEN_WIDTH) {
                 //TODO 4 入栈方法的调用
-                push_pos(p_con, p_con->cursor);
+                push_pos(p_con,p_con->cursor);
                 p_con->cursor = p_con->original_addr + SCREEN_WIDTH *
                                                        ((p_con->cursor - p_con->original_addr) /
                                                         SCREEN_WIDTH + 1);
             }
             break;
-        case '\b'://退格键，删除一个字符
+        case '\b':
             if (p_con->cursor > p_con->original_addr) {
                 //TODO 4 出栈方法的调用
                 unsigned int temp = p_con->cursor; // 原先位置
                 p_con->cursor = pop_pos(p_con);//出栈
                 int i;
-                for (i = 0; i < temp - p_con->cursor; ++i) { // 用空格填充
-                    *(p_vmem - 2 - 2 * i) = ' ';
-                    *(p_vmem - 1 - 2 * i) = DEFAULT_CHAR_COLOR;
+                for(i=0;i<temp-p_con->cursor;++i){ // 用空格填充
+                    *(p_vmem-2-2*i) = ' ';
+                    *(p_vmem-1-2*i) = DEFAULT_CHAR_COLOR;
                 }
 //                *(p_vmem - 2) = ' ';
 //                *(p_vmem - 1) = DEFAULT_CHAR_COLOR;
             }
             break;
-            //TODO 2 新增对tab的显示器输出
         case '\t':
-            if (p_con->cursor < p_con->original_addr +
-                                p_con->v_mem_limit - TAB_WIDTH) {
+            if(p_con->cursor < p_con->original_addr +
+                               p_con->v_mem_limit - TAB_WIDTH){
                 int i;
-                for (i = 0; i < TAB_WIDTH; ++i) { // 用空格填充
+                for(i=0;i<TAB_WIDTH;++i){ // 用空格填充
                     *p_vmem++ = ' ';
                     *p_vmem++ = DEFAULT_CHAR_COLOR;
                 }
-                //TODO 4 入栈方法的调用
-                push_pos(p_con, p_con->cursor);
+                push_pos(p_con,p_con->cursor);
                 p_con->cursor += TAB_WIDTH; // 调整光标
             }
             break;
-
         default:
             if (p_con->cursor <
                 p_con->original_addr + p_con->v_mem_limit - 1) {
@@ -127,7 +122,7 @@ PUBLIC void out_char(CONSOLE *p_con, char ch)//向显示器上写一个字符，
                     *p_vmem++ = RED;
                 }
                 //TODO 4 入栈方法的调用
-                push_pos(p_con, p_con->cursor);
+                push_pos(p_con,p_con->cursor);
                 p_con->cursor++;
             }
             break;
@@ -143,7 +138,8 @@ PUBLIC void out_char(CONSOLE *p_con, char ch)//向显示器上写一个字符，
 /*======================================================================*
                            flush
 *======================================================================*/
-PRIVATE void flush(CONSOLE *p_con) {
+PRIVATE void flush(CONSOLE* p_con)
+{
     set_cursor(p_con->cursor);
     set_video_start_addr(p_con->current_start_addr);
 }
@@ -151,7 +147,8 @@ PRIVATE void flush(CONSOLE *p_con) {
 /*======================================================================*
 			    set_cursor
  *======================================================================*/
-PRIVATE void set_cursor(unsigned int position) {
+PRIVATE void set_cursor(unsigned int position)
+{
     disable_int();
     out_byte(CRTC_ADDR_REG, CURSOR_H);
     out_byte(CRTC_DATA_REG, (position >> 8) & 0xFF);
@@ -163,7 +160,8 @@ PRIVATE void set_cursor(unsigned int position) {
 /*======================================================================*
 			  set_video_start_addr
  *======================================================================*/
-PRIVATE void set_video_start_addr(u32 addr) {
+PRIVATE void set_video_start_addr(u32 addr)
+{
     disable_int();
     out_byte(CRTC_ADDR_REG, START_ADDR_H);
     out_byte(CRTC_DATA_REG, (addr >> 8) & 0xFF);
@@ -177,8 +175,7 @@ PRIVATE void set_video_start_addr(u32 addr) {
 /*======================================================================*
 			   select_console
  *======================================================================*/
-//select_console用于切换控制台，没什么用！
-PUBLIC void select_console(int nr_console)    /* 0 ~ (NR_CONSOLES - 1) */
+PUBLIC void select_console(int nr_console)	/* 0 ~ (NR_CONSOLES - 1) */
 {
     if ((nr_console < 0) || (nr_console >= NR_CONSOLES)) {
         return;
@@ -200,23 +197,26 @@ PUBLIC void select_console(int nr_console)    /* 0 ~ (NR_CONSOLES - 1) */
 	SCR_DN	: 向下滚屏
 	其它	: 不做处理
  *======================================================================*/
-PUBLIC void scroll_screen(CONSOLE *p_con, int direction) {
+PUBLIC void scroll_screen(CONSOLE* p_con, int direction)
+{
     if (direction == SCR_UP) {
         if (p_con->current_start_addr > p_con->original_addr) {
             p_con->current_start_addr -= SCREEN_WIDTH;
         }
-    } else if (direction == SCR_DN) {
+    }
+    else if (direction == SCR_DN) {
         if (p_con->current_start_addr + SCREEN_SIZE <
             p_con->original_addr + p_con->v_mem_limit) {
             p_con->current_start_addr += SCREEN_WIDTH;
         }
-    } else {
+    }
+    else{
     }
 
     set_video_start_addr(p_con->current_start_addr);
     set_cursor(p_con->cursor);
 }
-//TODO 4 入栈和出栈方法的实现
+
 PUBLIC void push_pos(CONSOLE *console, unsigned int pos) {//注意点：pos始终指向下一个未填写内容的pos（填入第一个stack，pos=1，指向的是数组的第二个元素）
     int topStackItemIndex = console->pos_stack.stack_depth;
     console->pos_stack.pos[topStackItemIndex] = pos;
@@ -233,21 +233,20 @@ PUBLIC unsigned int pop_pos(CONSOLE *console) {//注意点：这里并不是真�
     }
 
 }
-
-
 //TODO 6 再按ESC时候清屏操作的实现
 PUBLIC void exit_search_mode(CONSOLE *console) {
     u8 *p_vmem = (u8 *) (V_MEM_BASE + console->cursor * 2);//显存指针，指向的是当前光标所指向的字符位置
     //找到开始搜索时候的光标位置，这个也是需要复原到的位置
-    for(i=0;i<console->cursor-console->search_start_pos;++i){
+    int i;
+    int start_depth = console->pos_stack.search_start_stack_depth;
+    int start_pos = console->pos_stack.pos[start_depth-1];
+    for(i=0;i<console->cursor-1-start_pos;++i){
         *(p_vmem - 2 - 2 * i) = ' ';
         *(p_vmem - 1 - 2 * i) = DEFAULT_CHAR_COLOR;
     }
-    //将指针返回到原来的位置
     //将栈的高度调整为原来的位置
     console->pos_stack.stack_depth = console->pos_stack.search_start_stack_depth;
-    console->cursor = console->search_start_pos;
-
+    console->cursor = start_pos+1;
     //TODO 9 将所有文字颜色变为白色
     for(int i=0;i<SCREEN_WIDTH*2;i+=2){
         *(u8*)(V_MEM_BASE + i + 1) = DEFAULT_CHAR_COLOR;
@@ -258,7 +257,7 @@ PUBLIC void exit_search_mode(CONSOLE *console) {
 }
 
 //TODO 8 用于字符串匹配操作的具体实现：找到字符串，将字符串颜色标红
-PUBLIC void search_target_str(CONSOLE *console) {
+PUBLIC void search_target_str(CONSOLE *console){
     /*
      * 使用滑动窗口：开辟一个长度为target_str长度的窗口（内层循环）
      * 然后使用for循环，从0到search_start_cursor_pos开始遍历每一个输入的字符（外层循环）
@@ -266,48 +265,27 @@ PUBLIC void search_target_str(CONSOLE *console) {
      * 否则直接break掉
      * 如果match，则将其颜色修改为RED
      * */
-//    int stack_depth = console->pos_stack.stack_depth;
-//    int search_start_stack_depth = console->pos_stack.search_start_stack_depth;
-//    int search_start_pos = (int) console->pos_stack.pos[search_start_stack_depth - 1];
-//    int pos = (int) console->pos_stack.pos[stack_depth - 1];
-//    int target_str_len = (int) (pos - search_start_pos + 1);
-//    for (int i = 0; i < search_start_pos * 2; i += 2) {
-//        int found = 1;
-//        int in_str_ptr = i;//从i位置开始遍历，每次加2
-//        for (int j = search_start_pos * 2; j <= pos * 2; j += 2) {
-//            u8 *p_vmem_current_char = (u8 *) (V_MEM_BASE + in_str_ptr);//当前原字符串所指向的字符指针
-//            u8 *p_vmem_target_char = (u8 *) (V_MEM_BASE + j);//当前目标字符串所指向的字符指针
-//            if (*p_vmem_current_char != *p_vmem_target_char) {
-//                found = 0;
-//                break;
-//            } else {
-//                in_str_ptr += 2;
-//            }
-//        }
-//        if (found == 1) {
-//            for (int j = i; j < i + target_str_len * 2; j += 2) {
-//                *(u8 *) (V_MEM_BASE + j + 1) = RED;
-//            }
-//        }
-//    }
-    int i,j;
-    int begin,end; // 滑动窗口
-    for(i = 0; i < console->search_start_pos*2;i+=2){ // 遍历原始白色输入
-        begin = end = i; // 初始化窗口为0
-        int found = 1; // 是否匹配
-        // 遍历匹配
-        for(j = console->search_start_pos*2;j<console->cursor*2;j+=2){
-            if(*((u8*)(V_MEM_BASE+end))==*((u8*)(V_MEM_BASE+j))){
-                end+=2;
-            }else{
+    int stack_depth = console->pos_stack.stack_depth;
+    int search_start_stack_depth = console->pos_stack.search_start_stack_depth;
+    int search_start_pos = (int) console->pos_stack.pos[search_start_stack_depth - 1];
+    int end_pos = (int) console->pos_stack.pos[stack_depth - 1];
+    int target_str_len = (int) (end_pos - search_start_pos);
+    for (int i = 0; i < (search_start_pos-target_str_len+2) * 2; i += 2) {
+        int found = 1;
+        int in_str_ptr = i;//从i位置开始遍历，每次加2
+        for (int j = 0 ; j < target_str_len * 2; j += 2) {
+            u8 *p_vmem_current_char = (u8 *) (V_MEM_BASE + in_str_ptr);//当前原字符串的字符指针
+            u8 *p_vmem_target_char = (u8 *) (V_MEM_BASE + (search_start_pos+1)*2 +  j);//当前目标字符串的字符指针
+            if (*p_vmem_current_char != *p_vmem_target_char) {
                 found = 0;
                 break;
+            } else {
+                in_str_ptr += 2;
             }
         }
-        // 如果找到，标红
-        if(found == 1){
-            for(j = begin;j<end;j+=2){
-                *(u8*)(V_MEM_BASE + j + 1) = RED;
+        if (found == 1) {
+            for (int j = i; j < i + target_str_len * 2; j += 2) {
+                *(u8 *) (V_MEM_BASE + j + 1) = RED;
             }
         }
     }

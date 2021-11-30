@@ -108,8 +108,8 @@ PUBLIC void in_process(TTY *p_tty, u32 key)//key的输出程序
             case ESC:
                 if (mode == 0) {
                     mode = 1;
+                    //在此时记录栈中按下ESC时候（开始搜索模式后）栈的深度
                     p_tty->p_console->pos_stack.search_start_stack_depth = p_tty->p_console->pos_stack.stack_depth;
-                    p_tty->p_console->search_start_pos = p_tty->p_console->cursor;
                 } else if (mode == 1) {
                     mode = 0;
                     // TODO 6 实现再次按ESC时候的光标复位
